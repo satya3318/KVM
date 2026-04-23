@@ -1,0 +1,15 @@
+These commands need to be executed from VM.
+
+gcloud compute instances export vm-node1 \
+  --destination=/opt \
+  --zone=us-central1-a
+  
+  
+  gcloud compute instances export vm-node1 \
+  --destination=/opt/vm-node1.yaml \
+  --zone=us-central1-a
+  
+  gcloud compute instances update-from-file vm-node1 \
+  --source=/opt/vm-node1.yaml \
+  --most-disruptive-allowed-action=RESTART \
+  --zone=central1-a
