@@ -1,0 +1,66 @@
+To view VM details in KVM, you mainly use virsh. Here are the most useful commands (from quick summary → deep inspection):
+
+✅ 1. Quick VM overview
+virsh list --all
+✅ 2. Full VM configuration (best command)
+virsh dominfo alpine1
+🔍 Output includes:
+CPU(s)
+Max memory
+Used memory
+State (running/shutoff)
+✅ 3. Detailed configuration (XML)
+virsh dumpxml alpine1
+
+👉 This shows everything:
+
+CPU config
+Memory
+Disk path
+Network
+Console
+Boot order
+✅ 4. Check CPU (vCPU details)
+virsh vcpuinfo alpine1
+✅ 5. Check memory
+virsh dommemstat alpine1
+✅ 6. Check disk details
+virsh domblklist alpine1
+
+Example output:
+
+Target   Source
+---------------------------------------------
+vda      /var/lib/libvirt/images/alpine1.qcow2
+More disk info:
+virsh domblkinfo alpine1 vda
+✅ 7. Check disk size (host side)
+qemu-img info /var/lib/libvirt/images/alpine1.qcow2
+✅ 8. Check network interfaces
+virsh domiflist alpine1
+✅ 9. Real-time usage (like top for VM)
+virsh domstats alpine1
+🚀 Most useful combo (practical)
+
+If you want quick summary:
+
+virsh dominfo alpine1
+virsh domblklist alpine1
+virsh domiflist alpine1
+🧠 Example summary you’ll get
+CPU: 2 vCPU
+Memory: 1024 MB
+Disk: /var/lib/libvirt/images/alpine1.qcow2
+Network: virbr0 (default)
+💡 Pro tip (very useful)
+
+For quick readable output:
+
+virsh dumpxml alpine1 | less
+👍 If you want next
+
+I can help you:
+
+Resize CPU/RAM of running VM
+Extend disk size (very common real-world task)
+Monitor VM performance like in production systems
