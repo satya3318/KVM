@@ -87,3 +87,88 @@ Method	Use case
 virsh console	CLI access (best)
 VNC	GUI / installer
 SSH	After network setup
+
+******* How to use console during installation (recommended for you) ***********
+
+Short answer: Yes—but only if you enable serial console for the installer.
+By default, your current setup (VNC + CDROM) uses a graphical console, not virsh console.
+
+🧠 What happens in your current setup
+
+You used:
+
+--graphics vnc
+--cdrom alpine-virt-3.22.4-x86_64.iso
+
+👉 So during install:
+
+Console = VNC only
+virsh console = ❌ won’t show installer
+✅ How to use console during installation (recommended for you)
+
+You need to install via serial console instead of VNC
+
+✔ Option 1: Use serial console (best for GCP + CLI)
+
+Create VM like this:
+
+virt-install \
+--name alpine1 \
+--ram 1024 \
+--vcpus 2 \
+--disk path=/var/lib/libvirt/images/alpine1.qcow2,size=10 \
+--os-variant alpinelinux3.22 \
+--network network=default \
+--graphics none \
+--console pty,target_type=serial \
+--cdrom /var/lib/libvirt/images/alpine-virt-3.22.4-x86_64.iso
+🔌 Then connect:
+virsh console alpine1
+
+👉 You will see:
+
+Boot logs
+Login prompt
+Can run setup-alpine
+⚠️ Important detail
+
+Alpine ISO may not automatically use serial console
+
+If screen is blank after connect:
+
+Press:
+Enter
+
+Or add kernel parameter (advanced):
+
+console=ttyS0
+✅ Option 2: Hybrid (VNC + console fallback)
+
+You can keep both:
+
+--graphics vnc \
+--console pty,target_type=serial
+👍 Best approach for you (on GCP)
+
+Since:
+
+VNC requires firewall + port
+You are working mostly CLI
+
+👉 Use:
+
+--graphics none + virsh console
+🧠 Simple rule
+Method	Installation Console
+VNC	GUI installer
+Serial (virsh console)	CLI installer
+Both enabled	Either works
+🚀 Pro tip
+
+For Alpine specifically:
+
+Installer is CLI anyway (setup-alpine)
+So serial console is perfect
+
+If you want next:
+👉 I can give you a ready-made virt-install command for 2–3 node cluster lab (all via console, no VNC needed)
