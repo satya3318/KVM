@@ -172,3 +172,75 @@ So serial console is perfect
 
 If you want next:
 👉 I can give you a ready-made virt-install command for 2–3 node cluster lab (all via console, no VNC needed)
+
+
+Method 1: Disable VNC (recommended)
+Step 1: Shutdown VM
+virsh shutdown alpine1
+
+(if stuck → virsh destroy alpine1)
+
+Step 2: Edit VM config
+virsh edit alpine1
+Step 3: Find this section
+<graphics type='vnc' port='-1' autoport='yes'/>
+
+👉 Either delete it completely
+OR change to:
+
+<graphics type='none'/>
+Step 4: Ensure serial console exists (important)
+
+Make sure this is present:
+
+<console type='pty'>
+  <target type='serial' port='0'/>
+</console>
+
+If not, add it.
+
+Step 5: Start VM
+virsh start alpine1
+✅ Now access via console
+virsh console alpine1
+🔍 Verify VNC is removed
+virsh vncdisplay alpine1
+
+👉 You should get:
+
+error: XML error: no graphics device defined
+⚠️ Important (inside Alpine)
+
+Make sure serial console works:
+
+Edit:
+
+vi /etc/inittab
+
+Add:
+
+ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
+
+Then reboot:
+
+reboot
+👍 Clean firewall (optional)
+
+Since VNC is removed, you can close ports:
+
+firewall-cmd --permanent --remove-port=5900-5999/tcp
+firewall-cmd --reload
+🚀 Best practice for future VMs
+
+Create VM without VNC:
+
+--graphics none \
+--console pty,target_type=serial
+🧠 Summary
+Task	Command
+Remove VNC	virsh edit → delete <graphics>
+Access VM	virsh console
+Verify	virsh vncdisplay
+
+If you want next:
+👉 I can help you set up SSH access + port forwarding on GCP, so you can log in directly from your laptop (no console needed)
