@@ -1,0 +1,157 @@
+1. How networking works in KVM (two main models)
+✅ A. Default network (NAT + DHCP)
+
+This is what you’re now using:
+
+--network network=default
+🔧 Architecture
+VM (192.168.122.x)
+     ↓
+virbr0 (libvirt bridge on host)
+     ↓ NAT (iptables/masquerade)
+Host NIC (eth0)
+     ↓
+External network / Internet
+🔍 Components
+virbr0 → virtual bridge created by libvirt
+dnsmasq → provides DHCP + DNS
+IP range → usually 192.168.122.0/24
+📡 DHCP flow
+VM boots → sends DHCP request
+dnsmasq (on host) replies
+VM gets IP like 192.168.122.10
+👍 Pros
+Works everywhere (including GCP ✔️)
+Zero configuration
+Safe isolation
+👎 Cons
+VM not directly reachable from outside
+NAT involved (not real network presence)
+✅ B. Bridge network (real LAN IP)
+--network bridge=br0
+🔧 Architecture
+VM (192.168.1.x)
+     ↓
+br0 (Linux bridge)
+     ↓
+eth0 (physical NIC)
+     ↓
+Same LAN as host
+📡 DHCP flow
+VM sends DHCP request
+Your real router/DHCP server responds
+VM gets IP like 192.168.1.50
+👍 Pros
+VM acts like real machine on network
+Direct SSH, ping, etc.
+Required for production clusters
+👎 Cons
+Needs L2 support (not available in GCP ❌)
+More setup
+⚖️ Which is better?
+Use case	Best option
+GCP / Cloud VM	✅ Default (NAT)
+Local lab (laptop/server)	Bridge
+Production / real infra	Bridge
+Learning KVM basics	Default
+
+👉 For YOU (GCP):
+Default network is the correct and only practical choice
+
+🚀 2. Live migration support
+
+Now the important part 👇
+
+❓ Can you do live migration with default NAT network?
+
+👉 Technically: YES
+👉 Practically: LIMITED / NOT recommended
+
+🧠 Why?
+With default network:
+Each host has its own:
+virbr0
+DHCP (dnsmasq)
+VM IP = not portable across hosts
+
+👉 After migration:
+
+VM may get new IP
+Connectivity may break
+❌ Problems in real scenarios
+SSH sessions break
+Cluster communication breaks
+Services become unreachable
+✅ With bridge network (ideal for migration)
+VM keeps same IP (from real network)
+No NAT dependency
+Seamless migration
+
+👉 That’s why:
+➡️ Bridge networking is standard for live migration setups
+
+🔥 Important for your GCP case
+
+Since:
+
+GCP blocks L2 / bridge
+You must use NAT
+
+👉 Live migration:
+
+Possible only in lab/testing sense
+Not production-grade
+💡 Workarounds (if you want to simulate migration)
+Option 1: Static IP inside NAT
+
+Assign fixed IP:
+
+192.168.122.100
+
+But still:
+
+Only valid per host
+Option 2: Use same libvirt network config on all hosts
+Same subnet
+Same DHCP range
+
+Still not perfect, but helps in labs.
+
+Option 3 (Advanced / Real-world approach)
+
+Use overlay networking:
+
+VXLAN
+Kubernetes CNI
+Software-defined networking
+
+(Advanced—can guide later)
+
+🧠 Final recommendation for you
+Right now:
+
+✔ Use network=default
+✔ Use DHCP
+✔ Focus on:
+
+KVM basics
+Multi-node lab
+SSH connectivity
+Later (when moving to real infra):
+
+Switch to:
+✔ Bridge networking
+✔ Static IP or external DHCP
+✔ Proper migration setup
+
+🚀 Simple summary
+Feature	Default (NAT)	Bridge
+DHCP	Host (dnsmasq)	External
+Internet	NAT	Direct
+Reachability	Limited	Full
+GCP support	✅	❌
+Live migration	⚠️ Limited	✅ Best
+
+If you want next step, I can help you:
+
+👉 Build a 2–3 VM cluster on your GCP KVM host with proper networking + SSH + inter-node communication (like real environment)
