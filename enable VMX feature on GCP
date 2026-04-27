@@ -55,10 +55,12 @@ Updated [https://www.googleapis.com/compute/v1/projects/project-79e66482-b6e9-4d
   --source=/opt/vm-node1.yaml \
   --most-disruptive-allowed-action=RESTART \
   --zone=us-central1-a
-  
-  sudo nmcli connection add type bridge autoconnect yes con-name bridge0 ifname eth0
-  dnf install -y qemu-kvm libvirt virt-install bridge-util
-  systemctl enable --now libvirtd
+
+
+dnf install epel-release.noarch
+dnf install -y qemu-kvm libvirt virt-install bridge-util
+systemctl enable --now libvirtd
+
 [root@kvm-node1 ~]#   virt-host-validate
   QEMU: Checking for hardware virtualization                                 : PASS
   QEMU: Checking if device '/dev/kvm' exists                                 : PASS
