@@ -231,3 +231,132 @@ du -sh /var/lib/libvirt/images/
 
 # Find large snapshot files
 find /var/lib/libvirt/images/ -name "*.qcow2" -exec du -sh {} \; | sort -h
+
+
+
+# virsh snapshot-create-as \
+  --domain alpine1 \
+  --name "external-snap-$(date +%Y%m%d)" \
+  --disk-only \
+  --diskspec vda,snapshot=external,file=/var/lib/libvirt/images/alpine1-snap-$(date +%Y%m%d).qcow2 \
+  --no-metadata
+
+# virsh snapshot-list alpine1
+
+will likely show nothing.
+
+
+[root@kvm-node1 ~]# virsh domblklist alpine1
+ Target   Source
+---------------------------------------------------------------
+ vda      /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+ 
+
+root@kvm-node1 ~]# qemu-img info --backing-chain /var/lib/libvirt/images/alpine1-snap-20260427.qcow2 qemu-img: 
+Could not open '/var/lib/libvirt/images/alpine1-snap-20260427.qcow2': Failed to get shared "write" lock Is another process using the image [/var/lib/libvirt/images/alpine1-snap-20260427.qcow2]? 
+
+[root@kvm-node1 ~]#
+
+he snapshot is active and attached correctly:
+
+vda -> /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+
+Your error happens because the VM is running, and QEMU has the qcow2 file locked.
+
+Ways to inspect safely
+Option 1 (Recommended): Use --force-share
+
+[root@kvm-node1 ~]# qemu-img info --force-share --backing-chain /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+image: /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+file format: qcow2
+virtual size: 10 GiB (10737418240 bytes)
+disk size: 520 KiB
+cluster_size: 65536
+backing file: /var/lib/libvirt/images/alpine1.qcow2
+backing file format: qcow2
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+Child node '/file':
+    filename: /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+    protocol type: file
+    file length: 576 KiB (589824 bytes)
+    disk size: 520 KiB
+
+image: /var/lib/libvirt/images/alpine1.qcow2
+file format: qcow2
+virtual size: 10 GiB (10737418240 bytes)
+disk size: 119 MiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: true
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+Child node '/file':
+    filename: /var/lib/libvirt/images/alpine1.qcow2
+    protocol type: file
+    file length: 10 GiB (10739318784 bytes)
+    disk size: 119 MiB
+    Format specific information:
+        extent size hint: 1048576
+[root@kvm-node1 ~]# virsh domblklist alpine1
+ Target   Source
+---------------------------------------------------------------
+ vda      /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+
+[root@kvm-node1 ~]# 
+# qemu-img info --force-share --backing-chain /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+
+
+Option 2: Discard snapshot changes (rollback)
+Use if you want to restore original state
+1. Ensure VM is off:
+
+# virsh shutdown alpine1
+
+2. Edit XML:
+# virsh edit alpine1
+
+Replace:
+
+<source file='/var/lib/libvirt/images/alpine1-snap-20260427.qcow2'/>
+
+With:
+
+<source file='/var/lib/libvirt/images/alpine1.qcow2'/>
+
+3. Remove entire backingStore section:
+
+Delete:
+
+<backingStore type='file'>
+  <format type='qcow2'/>
+  <source file='/var/lib/libvirt/images/alpine1.qcow2'/>
+</backingStore>
+
+4. Delete overlay:
+rm -f /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+
+#### If VM is stuck not rebooting or shutdown
+virsh reboot alpine1
+virsh shutdown alpine1
+virsh list --all
+If VM does not shut down:
+Force power off:
+
+virsh destroy alpine1
+
+source file='/var/lib/libvirt/images/alpine1.qcow2'
+Delete overlay:
+rm -f /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+
+
+Start VM:
+virsh start alpine1
