@@ -1,15 +1,347 @@
-These commands need to be executed from VM.
+#### To enable VMX on GCP clound on Linux ###
 
-gcloud compute instances export vm-node1 \
-  --destination=/opt \
+From Another VM run the followig commands to 
+  
+[root@storage-node1 ~]# gcloud auth login
+
+You are running on a Google Compute Engine virtual machine.
+It is recommended that you use service accounts for authentication.
+
+You can run:
+
+  $ gcloud config set account `ACCOUNT`
+
+to switch accounts if necessary.
+
+Your credentials may be visible to others with access to this
+virtual machine. Are you sure you want to authenticate with
+your personal account?
+
+Do you want to continue (Y/n)?  y
+
+Go to the following link in your browser, and complete the sign-in prompts:
+
+    https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=32555940559.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fsdk.cloud.google.com%2Fauthcode.html&scope=openid+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fappengine.admin+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fsqlservice.login+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcompute+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Faccounts.reauth&state=Kggw9aMVT2NekQ1obDbPMEsJmqs1Vs&prompt=consent&token_usage=remote&access_type=offline&code_challenge=-tnVADWUEgOrlzO4abMmSXWETi0gqtvCHBP_0-DwLDo&code_challenge_method=S256
+
+Once finished, enter the verification code provided in your browser: 4/0Aci98E9Nh20qI10TWovA1ytKgziyHmRCC9R2PjnLpNop-UBB9Wp7VOHsg1ciXTSU3JBqVA
+
+You are now logged in as [satyawan.mhatre@gmail.com].
+Your current project is [project-79e66482-b6e9-4d7e-bf4].  You can change this setting by running:
+  $ gcloud config set project PROJECT_ID
+[root@storage-node1 ~]#   gcloud compute instances export kvm-node1 \
+  --destination=/opt/vm-node1.yaml \
   --zone=us-central1-a
+Exported [kvm-node1] to '/opt/vm-node1.yaml'.
+[root@storage-node1 ~]# vi /opt/vm-node1.yaml
+[root@storage-node1 ~]#   gcloud compute instances update-from-file kvm-node1 \
+  --source=/opt/vm-node1.yaml \
+  --most-disruptive-allowed-action=RESTART \
+  --zone=us-central1-a
+Updated [https://www.googleapis.com/compute/v1/projects/project-79e66482-b6e9-4d7e-bf4/zones/us-central1-a/instances/kvm-node1].
+[root@storage-node1 ~]# 
+[root@storage-node1 ~]# 
+[root@storage-node1 ~]# 
   
   
-  gcloud compute instances export vm-node1 \
+  gcloud compute instances export kvm-node1 \
   --destination=/opt/vm-node1.yaml \
   --zone=us-central1-a
   
-  gcloud compute instances update-from-file vm-node1 \
+  vi /opt/vm-node1.yaml
+  advancedMachineFeatures:
+  enableNestedVirtualization: true
+  
+  gcloud compute instances update-from-file kvm-node1 \
   --source=/opt/vm-node1.yaml \
   --most-disruptive-allowed-action=RESTART \
-  --zone=central1-a
+  --zone=us-central1-a
+  
+  sudo nmcli connection add type bridge autoconnect yes con-name bridge0 ifname eth0
+  dnf install -y qemu-kvm libvirt virt-install bridge-util
+  systemctl enable --now libvirtd
+[root@kvm-node1 ~]#   virt-host-validate
+  QEMU: Checking for hardware virtualization                                 : PASS
+  QEMU: Checking if device '/dev/kvm' exists                                 : PASS
+  QEMU: Checking if device '/dev/kvm' is accessible                          : PASS
+  QEMU: Checking if device '/dev/vhost-net' exists                           : PASS
+  QEMU: Checking if device '/dev/net/tun' exists                             : PASS
+  QEMU: Checking for cgroup 'cpu' controller support                         : PASS
+  QEMU: Checking for cgroup 'cpuacct' controller support                     : PASS
+  QEMU: Checking for cgroup 'cpuset' controller support                      : PASS
+  QEMU: Checking for cgroup 'memory' controller support                      : PASS
+  QEMU: Checking for cgroup 'devices' controller support                     : PASS
+  QEMU: Checking for cgroup 'blkio' controller support                       : PASS
+  QEMU: Checking for device assignment IOMMU support                         : WARN (No ACPI DMAR table found, IOMMU either disabled in BIOS or not supported by this hardware platform)
+  QEMU: Checking for secure guest support                                    : WARN (Unknown if this platform has Secure Guest support)
+[root@kvm-node1 ~]# 
+  
+  [root@vm-node1 ~]# virsh net-list --all
+ Name      State    Autostart   Persistent
+--------------------------------------------
+ default   active   yes         yes
+
+[root@vm-node1 ~]# virsh list --all
+ Id   Name   State
+--------------------
+
+[root@vm-node1 ~]# 
+
+
+Step 1: Find Ubuntu OS variant
+
+Run:
+
+virt-install --osinfo list | grep -i ubuntu
+
+virt-install \
+--name alpine1 \
+--ram 1024 \
+--vcpus 2 \
+--disk path=/var/lib/libvirt/images/alpine1.qcow2,size=10 \
+--os-variant alpinelinux3.22 \
+--network type=direct,source=eth0,source_mode=bridge \
+--graphics vnc \
+--cdrom /var/lib/libvirt/images/alpine-virt-3.22.4-x86_64.iso
+
+root@kvm-node1 ~]# rm -fr /var/lib/libvirt/images/alpine-virt-3.2
+alpine-virt-3.22.4-x86_64.iso  alpine-virt-3.23.4-x86_64.iso  
+[root@kvm-node1 ~]# rm -fr /var/lib/libvirt/images/alpine-virt-3.2
+alpine-virt-3.22.4-x86_64.iso  alpine-virt-3.23.4-x86_64.iso  
+[root@kvm-node1 ~]# rm -fr /var/lib/libvirt/images/alpine-virt-3.2^C
+[root@kvm-node1 ~]# virsh destroy alpine1
+Domain 'alpine1' destroyed
+
+[root@kvm-node1 ~]# 
+[root@kvm-node1 ~]# rm -fr /var/lib/libvirt/images/testvm.qcow2
+[root@kvm-node1 ~]# 
+[root@kvm-node1 ~]# virt-install --name alpine1 --ram 1024 --vcpus 2 --disk path=/var/lib/libvirt/images/testvm.qcow2,size=10 --os-variant alpinelinux3.22 --network network=default --graphics vnc --cdrom /var/lib/libvirt/images/alpine-virt-3.22.4-x86_64.iso
+ERROR    Disk /var/lib/libvirt/images/testvm.qcow2 is already in use by other guests ['alpine1']. (Use --check path_in_use=off or --check all=off to override)
+[root@kvm-node1 ~]# 
+[root@kvm-node1 ~]# virt-install \
+--name alpine1 \
+--ram 1024 \
+--vcpus 2 \
+--disk path=/var/lib/libvirt/images/alpine1.qcow2,size=10 \
+--os-variant alpinelinux3.22 \
+--network network=default \
+--graphics vnc \
+--cdrom /var/lib/libvirt/images/alpine-virt-3.22.4-x86_64.iso
+WARNING  Unable to connect to graphical console: virt-viewer not installed. Please install the 'virt-viewer' package.
+WARNING  No console to launch for the guest, defaulting to --wait -1
+
+Starting install...
+ERROR    Guest name 'alpine1' is already in use.
+Domain installation does not appear to have been successful.
+If it was, you can restart your domain by running:
+  virsh --connect qemu:///system start alpine1
+otherwise, please restart your installation.
+[root@kvm-node1 ~]# virh list --all
+-bash: virh: command not found
+[root@kvm-node1 ~]# virsh 
+.bash_history  .bash_profile  .cache/        index.html     .tcshrc        .wget-hsts     
+.bash_logout   .bashrc        .cshrc         .ssh/          .viminfo       wget-log       
+[root@kvm-node1 ~]# virsh list --all
+ Id   Name      State
+--------------------------
+ -    alpine1   shut off
+
+[root@kvm-node1 ~]# virsh undefine alpine1
+Domain 'alpine1' has been undefined
+
+[root@kvm-node1 ~]# virsh list --all
+ Id   Name   State
+--------------------
+
+[root@kvm-node1 ~]# 
+
+v
+
+
+
+https://cdimage.ubuntu.com/ubuntu-mini-iso/releases/24.04.4/release/ubuntu-mini-iso-24.04.4-mini-iso-amd64.iso
+
+Ubuntu 24.04 | Security & Hardening
+
+3Fg[7z+>nlks);U
+
+
+https://dl-cdn.alpinelinux.org&/alpine/v3.22/releases/x84_64/alpine-standard-3.22.4-x86_64.iso
+
+
+Step 1: Get VNC port
+
+Run:
+
+virsh vncdisplay testvm
+
+Output will be like:
+
+:0
+
+👉 That means:
+
+Port = 5900
+If :1 → port 5901
+🌐 Step 2: Connect from your laptop
+
+Create SSH tunnel:
+
+ssh -L 5900:localhost:5900 root@<your-gcp-vm-ip>
+
+Then open any VNC viewer and connect to:
+
+localhost:5900
+
+Remove VM from KVM
+
+virsh destroy alpine1
+virsh undefine alpine1 --remove-all-storage
+
+
+
+How to reboot VM from KVM hosta
+Use in order:
+
+virsh reboot ✅ (safe)
+virsh reset ⚠️ (force)
+destroy + start 🚨 (last option)
+
+C1 C2 C5
+
+D1 D2 D5
+
+
+
+# virsh snapshot-create-as \
+  --domain alpine1 \
+  --name "external-snap-$(date +%Y%m%d)" \
+  --disk-only \
+  --diskspec vda,snapshot=external,file=/var/lib/libvirt/images/alpine1-snap-$(date +%Y%m%d).qcow2 \
+  --no-metadata
+
+# virsh snapshot-list alpine1
+
+will likely show nothing.
+
+
+[root@kvm-node1 ~]# virsh domblklist alpine1
+ Target   Source
+---------------------------------------------------------------
+ vda      /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+ 
+
+root@kvm-node1 ~]# qemu-img info --backing-chain /var/lib/libvirt/images/alpine1-snap-20260427.qcow2 qemu-img: 
+Could not open '/var/lib/libvirt/images/alpine1-snap-20260427.qcow2': Failed to get shared "write" lock Is another process using the image [/var/lib/libvirt/images/alpine1-snap-20260427.qcow2]? 
+
+[root@kvm-node1 ~]#
+
+he snapshot is active and attached correctly:
+
+vda -> /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+
+Your error happens because the VM is running, and QEMU has the qcow2 file locked.
+
+Ways to inspect safely
+Option 1 (Recommended): Use --force-share
+
+[root@kvm-node1 ~]# qemu-img info --force-share --backing-chain /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+image: /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+file format: qcow2
+virtual size: 10 GiB (10737418240 bytes)
+disk size: 520 KiB
+cluster_size: 65536
+backing file: /var/lib/libvirt/images/alpine1.qcow2
+backing file format: qcow2
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+Child node '/file':
+    filename: /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+    protocol type: file
+    file length: 576 KiB (589824 bytes)
+    disk size: 520 KiB
+
+image: /var/lib/libvirt/images/alpine1.qcow2
+file format: qcow2
+virtual size: 10 GiB (10737418240 bytes)
+disk size: 119 MiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: true
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+Child node '/file':
+    filename: /var/lib/libvirt/images/alpine1.qcow2
+    protocol type: file
+    file length: 10 GiB (10739318784 bytes)
+    disk size: 119 MiB
+    Format specific information:
+        extent size hint: 1048576
+[root@kvm-node1 ~]# virsh domblklist alpine1
+ Target   Source
+---------------------------------------------------------------
+ vda      /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+
+[root@kvm-node1 ~]# 
+# qemu-img info --force-share --backing-chain /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+
+
+Option 2: Discard snapshot changes (rollback)
+Use if you want to restore original state
+1. Ensure VM is off:
+
+# virsh shutdown alpine1
+
+2. Edit XML:
+# virsh edit alpine1
+
+Replace:
+
+<source file='/var/lib/libvirt/images/alpine1-snap-20260427.qcow2'/>
+
+With:
+
+<source file='/var/lib/libvirt/images/alpine1.qcow2'/>
+
+3. Remove entire backingStore section:
+
+Delete:
+
+<backingStore type='file'>
+  <format type='qcow2'/>
+  <source file='/var/lib/libvirt/images/alpine1.qcow2'/>
+</backingStore>
+
+4. Delete overlay:
+rm -f /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+
+#### If VM is stuck not rebooting or shutdown
+virsh reboot alpine1
+virsh shutdown alpine1
+virsh list --all
+If VM does not shut down:
+Force power off:
+
+virsh destroy alpine1
+
+source file='/var/lib/libvirt/images/alpine1.qcow2'
+Delete overlay:
+rm -f /var/lib/libvirt/images/alpine1-snap-20260427.qcow2
+
+
+Start VM:
+virsh start alpine1
+
+
+
+virt-clone \
+  --original alpine1 \
+  --name alpine1-prod01 \
+  --file /var/lib/libvirt/images/alpine1-prod01.qcow2
