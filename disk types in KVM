@@ -1,0 +1,311 @@
+In KVM / libvirt, several virtual disk formats are supported beyond qcow2, and the best choice for production depends on your priorities: performance, flexibility, storage backend, and management features.
+Common KVM Disk Types
+1. raw (Recommended for most production workloads)
+
+
+Direct block image with no extra metadata
+
+
+Best performance (lowest overhead)
+
+
+Supports:
+
+
+Local files (.img)
+
+
+LVM logical volumes
+
+
+Direct SAN/iSCSI/FC LUNs
+
+
+NVMe devices
+
+
+
+
+Pros:
+
+
+Fastest I/O
+
+
+Best for databases and high-performance apps
+
+
+Easy migration to block storage
+
+
+
+
+Cons:
+
+
+No built-in snapshots
+
+
+No compression or thin provisioning
+
+
+
+
+Production use:
+Best for performance-critical VMs
+
+2. LVM / LVM-thin
+
+
+VM disk stored as logical volume
+
+
+Pros:
+
+
+Near-raw performance
+
+
+Centralized storage management
+
+
+Live migration possible
+
+
+Thin provisioning with LVM-thin
+
+
+
+
+Cons:
+
+
+Slightly more management complexity
+
+
+Thin pools need monitoring
+
+
+
+
+Production use:
+Excellent for enterprise virtualization
+
+3. qcow2
+
+
+Copy-on-write format
+
+
+Features:
+
+
+Snapshots
+
+
+Compression
+
+
+Encryption
+
+
+Thin provisioning
+
+
+
+
+Pros:
+
+
+Flexible
+
+
+Good for labs/dev/testing
+
+
+
+
+Cons:
+
+
+Slower than raw
+
+
+More fragmentation risk
+
+
+
+
+Production use:
+Usually avoided for heavy workloads unless snapshots are essential
+
+4. Direct Block Devices
+
+
+Physical disks or SAN LUNs passed directly
+
+
+Examples:
+
+
+/dev/sdb
+
+
+/dev/mapper/vg_vm/lv_vm100
+
+
+
+
+Pros:
+
+
+Maximum performance
+
+
+Enterprise-grade
+
+
+
+
+Cons:
+
+
+Requires careful storage management
+
+
+
+
+Production use:
+Ideal for serious enterprise environments
+
+5. Ceph RBD
+
+
+Distributed block storage
+
+
+Pros:
+
+
+HA
+
+
+Live migration
+
+
+Scalability
+
+
+
+
+Cons:
+
+
+More complex
+
+
+Network-dependent
+
+
+
+
+Production use:
+Excellent for clustered environments
+
+6. Network Storage Backends
+
+
+NFS
+
+
+iSCSI
+
+
+Fibre Channel
+
+
+GlusterFS
+
+
+ZFS zvols
+
+
+Pros:
+
+
+Shared storage
+
+
+Migration support
+
+
+
+
+Cons:
+
+
+Depends on network/storage quality
+
+
+
+
+
+Recommended Production Choices
+Small/Standalone Production
+Use:
+
+
+raw
+
+
+LVM
+
+
+LVM-thin (if thin provisioning needed)
+
+
+
+Enterprise / Clustered Production
+Use:
+
+
+Direct SAN LUNs
+
+
+Fibre Channel
+
+
+iSCSI
+
+
+Ceph RBD
+
+
+ZFS zvol
+
+
+
+Avoid for Production if:
+
+
+Heavy DB workload on qcow2
+
+
+Large-scale HA with file-based storage unless optimized
+
+
+
+Practical Recommendation
+ScenarioBest OptionMaximum performanceRaw / LVMThin provisioningLVM-thinSnapshots/lab/testingqcow2Enterprise shared storageCeph / SAN / FCEasy management + performanceLVM
+
+My Production Suggestion
+For your kind of infrastructure (data center / server-focused):
+Primary: Raw LVM volumes or direct SAN/FC LUNs
+Secondary: LVM-thin if storage efficiency matters
+Avoid: qcow2 for critical production VMs unless snapshots are a major requirement
+
+Example:
+virt-install --disk path=/dev/vg_kvm/vm01_disk,format=raw
+
+Bottom Line
+Raw + LVM/direct block storage is the industry-preferred production standard for KVM due to performance, simplicity, and reliability.
