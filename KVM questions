@@ -1,0 +1,671 @@
+
+
+Quqersion on KVM for L3 level
+
+Here are some advanced KVM (Kernel-based Virtual Machine) interview questions suitable for an L3/Linux Virtualization Engineer level:
+
+KVM L3 Level Interview Questions
+Architecture & Concepts
+What is KVM, and how does it differ from Xen or VMware ESXi?
+
+Explain the role of:
+
+QEMU
+
+libvirt
+
+virt-manager
+
+virsh
+
+How does hardware virtualization work in Intel VT-x and AMD-V?
+
+What happens internally when a VM starts in KVM?
+
+Difference between full virtualization and paravirtualization?
+
+Explain VirtIO and why it improves performance.
+
+How does NUMA affect VM performance?
+
+Storage & Disk Management
+Difference between:
+
+qcow2
+
+raw
+
+LVM-backed disks
+
+When would you prefer raw over qcow2?
+
+Explain qcow2 snapshots and their limitations.
+
+How do you resize a VM disk online?
+
+Explain shared storage options for KVM HA clusters.
+
+How does multipath work with KVM?
+
+What is the impact of cache modes:
+
+writeback
+
+writethrough
+
+none
+
+directsync
+
+Networking
+Difference between:
+
+Linux bridge
+
+Open vSwitch
+
+macvtap
+
+How does VM networking work internally in KVM?
+
+Explain SR-IOV and PCI passthrough.
+
+How do you troubleshoot packet drops in a VM?
+
+Difference between NAT, routed, and bridged networking?
+
+How do VLANs work in KVM bridges?
+
+Live Migration & HA
+How does live migration work internally?
+
+Requirements for successful live migration?
+
+Why does live migration fail even when shared storage exists?
+
+Difference between:
+
+live migration
+
+block migration
+
+How do you migrate a VM without shared storage?
+
+Explain dirty page tracking during migration.
+
+How would you design a highly available KVM cluster?
+
+Performance Tuning
+How do you optimize CPU performance for VMs?
+
+Explain CPU pinning and emulator pinning.
+
+What is hugepages, and why is it used?
+
+How do you troubleshoot high CPU ready time?
+
+How do you identify storage bottlenecks in KVM?
+
+Explain ballooning memory.
+
+Difference between overcommit and reservation.
+
+Troubleshooting Scenarios
+VM is stuck in “paused” state. How do you troubleshoot?
+
+VM boots very slowly after migration. What checks will you perform?
+
+A VM shows high IO wait. How will you analyze?
+
+Live migration freezes at 90%. Possible causes?
+
+A VM cannot access storage after reboot. How do you debug?
+
+Why would a VM show “No bootable device” suddenly?
+
+How do you recover a corrupted qcow2 image?
+
+Explain steps to troubleshoot libvirtd failures.
+
+VM network works on host but not externally. What will you check?
+
+Cluster & Shared Storage
+Explain lvmlockd and shared VG concepts.
+
+Difference between:
+
+GFS2
+
+OCFS2
+
+shared LVM
+
+How does fencing work in virtualization clusters?
+
+What is split-brain in HA clusters?
+
+Explain quorum in Pacemaker/Corosync clusters.
+
+Why is STONITH important?
+
+Security
+How does SELinux affect KVM?
+
+Explain sVirt.
+
+How do you isolate tenant VMs securely?
+
+Risks of PCI passthrough?
+
+How would you harden a KVM hypervisor?
+
+Practical virsh/libvirt Questions
+Commands to:
+
+list VMs
+
+edit VM XML
+
+attach disk
+
+detach NIC
+
+create snapshot
+
+migrate VM
+
+How do you define and undefine a VM?
+
+Difference between persistent and transient VM?
+
+How do you edit VM XML safely?
+
+Where are VM XML files stored?
+
+Real L3 Scenario-Based Questions
+A shared VG is visible on both nodes, but VM migration fails with:
+"Cannot access storage file"
+What will you check?
+
+One PV in a VG is missing. Some LVs are healthy. How do you activate VG partially?
+
+VM performance dropped after enabling qcow2 snapshots. Why?
+
+A VM hangs during backup. What storage/cache issue could cause this?
+
+After reboot, shared LVM does not auto-activate. What services/configurations are required?
+
+You accidentally partitioned a disk already used as a PV. What happens internally, and how do you recover?
+
+Advanced Commands Expected from L3
+virsh domblklist vm1
+virsh dumpxml vm1
+virsh migrate --live
+virt-top
+qemu-img info
+qemu-img check
+lvchange -ay
+vgchange --lockstart
+sanlock client status
+journalctl -u libvirtd
+Important Topics for L3 Preparation
+Focus strongly on:
+
+Shared storage
+
+Live migration internals
+
+KVM networking
+
+Performance tuning
+
+Pacemaker/Corosync
+
+LVM locking
+
+VirtIO
+
+HugePages
+
+NUMA tuning
+
+Disaster recovery
+
+These are commonly asked for senior Linux virtualization roles.
+
+
+Explain the role of:
+
+QEMU
+libvirt
+virt-manager
+virsh. What is answer. Give me simple answer
+
+Here is a simple L3 interview-style answer:
+
+Role of QEMU
+QEMU is the actual virtualization engine that runs the virtual machine.
+
+It emulates CPU, memory, disk, network, and devices.
+
+KVM uses QEMU to create and run VMs.
+
+KVM provides hardware acceleration, while QEMU provides emulation.
+
+Simple line:
+QEMU runs the VM and emulates hardware devices.
+
+Role of libvirt
+libvirt is a management layer for virtualization.
+
+It provides APIs and services to manage VMs.
+
+It communicates with KVM/QEMU.
+
+Used for starting, stopping, migration, snapshots, networking, and storage management.
+
+Simple line:
+libvirt is the management service that controls KVM and QEMU.
+
+Role of virt-manager
+Virtual Machine Manager (virt-manager) is a graphical GUI tool.
+
+Used to create and manage VMs visually.
+
+Useful for administrators who prefer GUI instead of commands.
+
+Simple line:
+virt-manager is a GUI tool for managing KVM virtual machines.
+
+Role of virsh
+virsh is the command-line interface for libvirt.
+
+Used to manage VMs from terminal.
+
+Can start, stop, reboot, migrate, and edit VMs.
+
+Example:
+virsh list
+virsh start vm1
+virsh shutdown vm1
+Simple line:
+virsh is the CLI command tool used to manage VMs through libvirt.
+
+One-Line Overall Summary
+QEMU → Runs the VM
+
+KVM → Gives hardware acceleration
+
+libvirt → Management layer
+
+virsh → CLI management tool
+
+virt-manager → GUI management tool
+
+
+Please answer all these quetions.
+
+KVM L3 Interview Answers (Simple & Practical)
+1. What is KVM?
+KVM is a Linux kernel virtualization technology that converts Linux into a hypervisor.
+
+It uses:
+
+KVM → hardware virtualization
+
+QEMU → device emulation
+
+2. Difference between KVM, Xen, VMware
+Feature	KVM	Xen	VMware ESXi
+Type	Kernel module	Bare-metal hypervisor	Bare-metal hypervisor
+Open Source	Yes	Yes	No
+Linux Integration	Native	Separate hypervisor	Separate OS
+Cost	Free	Free	Licensed
+Components
+3. Role of QEMU
+QEMU runs the VM and emulates hardware devices like CPU, disk, NIC.
+
+4. Role of libvirt
+libvirt manages virtualization services and communicates with KVM/QEMU.
+
+5. Role of virt-manager
+Virtual Machine Manager is GUI software used to manage VMs graphically.
+
+6. Role of virsh
+virsh is CLI used to manage VMs.
+
+Example:
+
+virsh list
+virsh start vm1
+Virtualization Concepts
+7. VT-x and AMD-V
+These are CPU hardware virtualization extensions from Intel and AMD.
+
+They allow guest OS to run directly on CPU securely.
+
+8. What happens when VM starts?
+libvirt receives request
+
+QEMU process starts
+
+KVM module provides hardware acceleration
+
+VM memory and CPU allocated
+
+Virtual devices attached
+
+Guest OS boots
+
+9. Full virtualization vs Paravirtualization
+Full	Para
+Guest OS unchanged	Guest OS modified
+Slower	Faster
+Uses hardware emulation	Uses optimized drivers
+10. VirtIO
+VirtIO is a high-performance virtual driver.
+
+Used for:
+
+disk
+
+network
+
+memory balloon
+
+Improves VM performance.
+
+11. NUMA
+Non-Uniform Memory Access allows CPU to access local memory faster.
+
+Improper NUMA alignment causes latency.
+
+Storage
+12. qcow2 vs raw
+qcow2	raw
+Supports snapshots	Faster
+Thin provisioning	No snapshots
+Flexible	Better performance
+13. When use raw?
+Use raw for:
+
+databases
+
+high IOPS workloads
+
+production performance
+
+14. qcow2 snapshot limitation
+Performance drops
+
+Metadata overhead
+
+Corruption risk if chain grows large
+
+15. Resize VM disk online
+qemu-img resize disk.qcow2 +20G
+Then extend partition/filesystem inside guest.
+
+16. Shared storage options
+iSCSI
+
+FC SAN
+
+NFS
+
+Ceph
+
+Shared LVM
+
+17. Multipath
+Device Mapper Multipath provides multiple storage paths for redundancy and load balancing.
+
+18. Cache modes
+Mode	Description
+writeback	Fast, risk on power failure
+writethrough	Safer
+none	Best for shared storage
+directsync	Direct stable writes
+Networking
+19. Linux bridge vs OVS vs macvtap
+Type	Use
+Linux bridge	Simple networking
+Open vSwitch	Advanced SDN
+macvtap	Lightweight direct NIC
+20. VM networking internally
+VM NIC → tap interface → Linux bridge → physical NIC
+
+21. SR-IOV
+Single Root I/O Virtualization allows direct hardware NIC access to VM for near-native performance.
+
+22. NAT vs Bridged vs Routed
+Mode	Description
+NAT	VM shares host IP
+Bridged	VM gets LAN IP
+Routed	Routed via host
+Migration & HA
+23. Live migration
+Moves running VM from one host to another with minimal downtime.
+
+24. Live migration requirements
+Same CPU compatibility
+
+Shared storage OR block migration
+
+Network connectivity
+
+Same VM definition
+
+25. Why migration fails with shared storage?
+Possible reasons:
+
+Storage path mismatch
+
+LV not active
+
+permissions
+
+SELinux
+
+missing shared VG
+
+26. Block migration
+Copies VM disk during migration when no shared storage exists.
+
+27. Dirty page tracking
+Tracks modified memory pages during migration.
+
+Only changed pages copied repeatedly.
+
+28. HA KVM cluster design
+Use:
+
+Pacemaker
+
+Corosync
+
+Shared storage
+
+fencing
+
+redundant networking
+
+Performance
+29. CPU pinning
+Assigns dedicated host CPUs to VM vCPUs.
+
+Improves latency and performance.
+
+30. HugePages
+HugePages reduces memory overhead and improves performance.
+
+31. Ballooning memory
+Dynamic memory adjustment between host and guest.
+
+32. Overcommit
+Allocating more virtual resources than physically available.
+
+Troubleshooting
+33. VM paused state
+Check:
+
+virsh domstate vm1
+journalctl -xe
+Usually caused by:
+
+storage full
+
+IO errors
+
+34. High IO wait
+Check:
+
+iostat -x
+virsh domblkstat
+35. Migration freezes at 90%
+Usually:
+
+dirty pages increasing rapidly
+
+slow network
+
+storage latency
+
+36. VM no bootable device
+Check:
+
+boot order
+
+disk attachment
+
+corrupted filesystem
+
+missing storage
+
+37. Recover corrupted qcow2
+qemu-img check disk.qcow2
+qemu-img repair disk.qcow2
+38. Troubleshoot libvirtd
+systemctl status libvirtd
+journalctl -u libvirtd
+Cluster Concepts
+39. lvmlockd
+lvmlockd manages shared VG locks between cluster nodes.
+
+40. GFS2 vs OCFS2 vs Shared LVM
+Type	Purpose
+GFS2	Shared filesystem
+OCFS2	Cluster filesystem
+Shared LVM	Shared block storage
+41. Fencing
+Isolates failed node to prevent data corruption.
+
+42. Split brain
+Two cluster nodes think both are active.
+
+Can corrupt shared data.
+
+43. Quorum
+Minimum active nodes required for cluster operation.
+
+44. STONITH
+STONITH = Shoot The Other Node In The Head.
+
+Used for safe fencing.
+
+Security
+45. SELinux effect on KVM
+Can block VM disk/network access if contexts incorrect.
+
+46. sVirt
+sVirt isolates VMs securely using SELinux labels.
+
+47. PCI passthrough risk
+VM gets direct hardware access.
+Risk:
+
+isolation issues
+
+device lockups
+
+48. Hardening KVM host
+Enable SELinux
+
+Disable unused services
+
+Use firewall
+
+Restrict SSH
+
+Patch regularly
+
+virsh Commands
+49. List VMs
+virsh list --all
+50. Edit VM XML
+virsh edit vm1
+51. Attach disk
+virsh attach-disk
+52. VM snapshot
+virsh snapshot-create-as
+53. Live migrate
+virsh migrate --live
+54. Persistent vs transient VM
+Persistent	Transient
+Saved config	Temporary
+Auto-start possible	Removed after shutdown
+55. VM XML location
+/etc/libvirt/qemu/
+Real Scenario Answers
+56. Shared VG visible but migration fails
+Check:
+
+LV active on target
+
+storage path identical
+
+lvmlockd running
+
+permissions
+
+SELinux
+
+shared lockspace
+
+57. Activate VG partially
+vgchange -ay --partial vg01
+58. qcow2 snapshot performance issue
+Because every write traverses snapshot metadata chain.
+
+59. VM hangs during backup
+Possible:
+
+storage latency
+
+cache mode issue
+
+snapshot lock
+
+60. Shared LVM not auto-activating
+Check:
+
+lvmlockd
+
+sanlock
+
+use_lvmlockd=1
+
+vgchange --lockstart
+
+61. Partition created on PV accidentally
+Partition table overwrites LVM metadata.
+
+Recovery:
+
+restore PVID
+
+vgcfgrestore
+
+recreate PV UUID carefully
+
+
