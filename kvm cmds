@@ -27,6 +27,13 @@ ExecStart=/usr/sbin/lvchange -asy kvm_shared_vg/vm101
 RemainAfterExit=yes
 ExecStartPre=/usr/bin/sleep 10
 
-[Install]
+[Install
+
+virsh list --all
+virsh console vm101
+virsh migrate --live vm101 qemu+ssh://kvm-node1/system
+
+
+
 WantedBy=multi-user.target
 [root@kvm-node1 ~]#
