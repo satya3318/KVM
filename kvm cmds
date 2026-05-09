@@ -2,3 +2,13 @@
   VG            #PV #LV #SN Attr   VSize   VFree   Shared  LockType VLockArgs
   kvm_shared_vg   1   0   0 wz--ns <20.00g <19.75g  shared sanlock  1.0.0:lvmlock
   rl              1   2   0 wz--n- <19.00g      0
+
+
+**** IMP *** 
+For shared lvm, edit the following files
+
+/etc/lvm/lvm.conf
+use_lvmlockd = 1
+
+/etc/lvm/lvmlocal.conf
+host_id=1 on node1 & host_id=2 on node2 and so on
