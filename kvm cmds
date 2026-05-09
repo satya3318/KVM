@@ -12,3 +12,21 @@ use_lvmlockd = 1
 
 /etc/lvm/lvmlocal.conf
 host_id=1 on node1 & host_id=2 on node2 and so on
+
+Create following service to auto start lock on the vg and lv
+[root@kvm-node1 ~]# cat /etc/systemd/system/lvm-lockstart.service
+[Unit]
+Description=Start shared LVM lockspace and activate VM LVs
+After=network-online.target iscsi.service iscsid.service sanlock.service lvmlockd.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/vgchange --lockstart kvm_shared_vg
+ExecStart=/usr/sbin/lvchange -asy kvm_shared_vg/vm101
+RemainAfterExit=yes
+ExecStartPre=/usr/bin/sleep 10
+
+[Install]
+WantedBy=multi-user.target
+[root@kvm-node1 ~]#
