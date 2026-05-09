@@ -33,6 +33,17 @@ virsh list --all
 virsh console vm101
 virsh migrate --live vm101 qemu+ssh://kvm-node1/system
 
+virt-install \
+--name vm101 \
+--ram 1024 \
+--vcpus 1 \
+--disk path=/dev/kvm_shared_vg/vm101_disk \
+--os-variant alpinelinux3.22 \
+--network bridge=br0 \
+--graphics none \
+--console pty,target_type=serial \
+--cdrom /var/lib/libvirt/images/alpine-virt-3.23.4-x86.iso
+
 
 
 WantedBy=multi-user.target
