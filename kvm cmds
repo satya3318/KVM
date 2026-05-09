@@ -1,0 +1,4 @@
+[root@kvm-node1 ~]# vgs -o +shared,lock_type,lock_args
+  VG            #PV #LV #SN Attr   VSize   VFree   Shared  LockType VLockArgs
+  kvm_shared_vg   1   0   0 wz--ns <20.00g <19.75g  shared sanlock  1.0.0:lvmlock
+  rl              1   2   0 wz--n- <19.00g      0
