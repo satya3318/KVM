@@ -45,6 +45,37 @@ virt-install \
 --cdrom /var/lib/libvirt/images/alpine-virt-3.23.4-x86.iso
 
 
+[root@kvm-node2 ~]# lvchange -ays kvm_shared_vg/vm101_disk2
+
+
+  LV locked by other host: kvm_shared_vg/vm101_disk2
+  Failed to lock logical volume kvm_shared_vg/vm101_disk2.
+
+[root@kvm-node1 ~]# lvchange -ays kvm_shared_vg/vm101_disk2
+[root@kvm-node2 ~]# lvchange -ays kvm_shared_vg/vm101_disk2
+
+[root@kvm-node1 ~]# lvmlockctl -i
+VG kvm_shared_vg lock_type=sanlock RNzPgG-9glf-71RP-98Uo-z03A-ajyL-I2jfyZ
+LS sanlock lvm_kvm_shared_vg
+LK VG un ver 0
+LK LV sh QALFUp-1j5l-wd2y-6eWj-2db6-Sh4c-jC78no
+LK GL un ver 0
+LK LV ex Fp7qUx-8BcO-RCch-JW3x-mqWB-FMrk-TymWI9
+
+[root@kvm-node2 ~]# lvmlockctl -i
+VG kvm_shared_vg lock_type=sanlock RNzPgG-9glf-71RP-98Uo-z03A-ajyL-I2jfyZ
+LS sanlock lvm_kvm_shared_vg
+LK VG un ver 0
+LK LV sh QALFUp-1j5l-wd2y-6eWj-2db6-Sh4c-jC78no
+LK GL un ver 0
+LK LV sh Fp7qUx-8BcO-RCch-JW3x-mqWB-FMrk-TymWI9
+
+virsh attach-disk vm101 /dev/kvm_shared_vg/vm101_disk2 vdb --targetbus virtio --persistent --live
+
+In case of shared LVM, vm snapshot is not possible, but by taking lvm snapshot, we can crate lvm snapshot
+
+
+
 
 WantedBy=multi-user.target
 [root@kvm-node1 ~]#
