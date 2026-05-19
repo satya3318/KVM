@@ -1,0 +1,73 @@
+***********************************
+Virsh undefine removes only the VM definition from libvirt.
+Your actual VM disk and OS are usually still safe.
+
+Since you are using Ceph RBD, your VM data is most likely still present in: vm-pool/vm1-101 or similar RBD image.
+
+First Verify RBD Image Still Exists
+
+# rbd ls vm-pool
+
+If you still see:  vm1-101
+
+then your VM disk is safe.
+
+Also Verify Image Contains Data
+
+# rbd info vm-pool/vm1-101
+
+Check:
+
+size
+objects
+timestamps
+
+virsh undefine vm101 removes:
+
+libvirt XML definition
+VM metadata
+
+It does NOT remove:
+
+Ceph RBD image
+qcow2/raw disks
+guest OS data
+
+unless special flags used.
+
+***** Recovery Method ******
+
+You simply need to recreate VM definition.
+
+Easiest Recovery Method
+Step 1 — Create Empty XML Skeleton
+virt-install \
+--name vm101 \
+--memory 1024 \
+--vcpus 2 \
+--disk none \
+--network network=default,model=virtio \
+--os-variant alpinelinux3.22 \
+--import \
+--dry-run \
+--print-xml > vm101.xml
+
+  Step 2 — Edit XML
+  vi vm101.xml
+
+Replace disk section with your Ceph RBD disk.
+
+ <disk type='block' device='disk'>
+  <driver name='qemu' type='raw' cache='none' io='native' discard='unmap'/>
+  <source dev='/dev/rbd1'/>  ==> Verify this
+  <target dev='vda' bus='virtio'/>
+ </disk>
+  
+Example:
+
+Step 3 — Define VM Again
+virsh define vm101.xml
+
+Step 4 — Start VM
+virsh start vm101
+
