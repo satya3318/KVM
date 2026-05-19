@@ -1,0 +1,23 @@
+On all three nodes
+1. Update Rocky linux & Reboot
+# dnf update -y
+
+2. Install epel repo & then install KVM packages
+# dnf install epel-release.noarch
+# dnf install -y qemu-kvm libvirt virt-install
+
+3. Install Centos Ceph-reef repo
+# dnf install centos-release-ceph-reef
+# dnf install cephadm podman ceph-common
+
+4. Configure /etc/hosts
+10.190.0.9 kvm-node1
+10.190.0.10 kvm-node2
+10.190.0.10 kvm-node3
+
+5. Create cephadm with sudo user & configure ssh keybase login from all the three nodes
+# adduser cephadm
+# visudo
+
+6. 
+cephadm bootstrap --mon-ip 10.190.0.9 --ssh-user cephadm  --config initial-ceph.conf
