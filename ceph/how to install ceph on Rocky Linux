@@ -169,4 +169,88 @@ Bootstrap complete.
 
 # ceph config get mon cluster_network ==> No output as we are using same network
 
+10. Add nodes to the cluster
+[cephadm]$ sudo ceph orch host add kvm-node2 10.190.0.3
+Added host 'kvm-node2' with addr '10.190.0.3'
 
+[cephadm]$ sudo ceph orch host add kvm-node3 10.190.0.4
+Added host 'kvm-node3' with addr '10.190.0.4'
+
+11. Review cluster healt after adding nodes
+[cephadm]$ sudo ceph orch host ls
+HOST       ADDR        LABELS  STATUS  
+kvm-node1  10.190.0.2  _admin          
+kvm-node2  10.190.0.3                  
+kvm-node3  10.190.0.4                  
+3 hosts in cluster
+
+ 
+[cephadm]$ sudo ceph -s
+  cluster:
+    id:     7991965c-541a-11f1-8260-42010abe0002
+    health: HEALTH_WARN
+            Failed to apply 1 service(s): grafana
+            OSD count 0 < osd_pool_default_size 3
+ 
+  services:
+    mon: 1 daemons, quorum kvm-node1 (age 12m)
+    mgr: kvm-node1.uaroyz(active, since 12m), standbys: kvm-node2.aogkah
+    osd: 0 osds: 0 up, 0 in
+ 
+  data:
+    pools:   0 pools, 0 pgs
+    objects: 0 objects, 0 B
+    usage:   0 B used, 0 B / 0 B avail
+    pgs:     
+
+
+[cephadm]$ sudo ceph health detail
+HEALTH_WARN Failed to apply 1 service(s): grafana; OSD count 0 < osd_pool_default_size 3
+[WRN] CEPHADM_APPLY_SPEC_FAIL: Failed to apply 1 service(s): grafana
+    grafana: [('asn1 encoding routines', '', 'string too long')]
+[WRN] TOO_FEW_OSDS: OSD count 0 < osd_pool_default_size 3
+
+[cephadm]$ ceph orch ls
+NAME           PORTS        RUNNING  REFRESHED  AGE  PLACEMENT  
+alertmanager   ?:9093,9094      1/1  6m ago     23m  count:1    
+ceph-exporter                   3/3  6m ago     23m  *          
+crash                           3/3  6m ago     23m  *          
+grafana        ?:3000           0/1  -          23m  count:1    
+mgr                             2/2  6m ago     23m  count:2    
+mon                             1/5  6m ago     23m  count:5    
+node-exporter  ?:9100           3/3  6m ago     23m  *          
+prometheus     ?:9095           1/1  6m ago     23m  count:1    
+
+cephadm]$ sudo ceph orch ps
+NAME                     HOST       PORTS             STATUS         REFRESHED  AGE  MEM USE  MEM LIM  VERSION    IMAGE ID      CONTAINER ID  
+alertmanager.kvm-node1   kvm-node1  *:9093,9094       running (7m)      6m ago  23m    20.2M        -  0.25.0     c8568f914cd2  a517adebef24  
+ceph-exporter.kvm-node1  kvm-node1                    running (20m)     6m ago  23m    16.9M        -  19.2.3     aade1b12b8e6  0c5996393915  
+ceph-exporter.kvm-node2  kvm-node2                    running (9m)      6m ago   9m    6459k        -  19.2.3     aade1b12b8e6  4352ada4c812  
+ceph-exporter.kvm-node3  kvm-node3                    running (8m)      6m ago   8m    6479k        -  19.2.3     aade1b12b8e6  4f2ca364a1b3  
+crash.kvm-node1          kvm-node1                    running (20m)     6m ago  23m    13.8M        -  19.2.3     aade1b12b8e6  0ad83619a5ed  
+crash.kvm-node2          kvm-node2                    running (8m)      6m ago   8m    7596k        -  19.2.3     aade1b12b8e6  f6751e27646d  
+crash.kvm-node3          kvm-node3                    running (8m)      6m ago   8m    7608k        -  19.2.3     aade1b12b8e6  c1b7b3711489  
+mgr.kvm-node1.uaroyz     kvm-node1  *:9283,8765,8443  running (20m)     6m ago  24m     606M        -  19.2.3     aade1b12b8e6  60469d0cfe9a  
+mgr.kvm-node2.aogkah     kvm-node2  *:8443,9283,8765  running (8m)      6m ago   8m     485M        -  19.2.3     aade1b12b8e6  47a52f67a0d0  
+mon.kvm-node1            kvm-node1                    running (20m)     6m ago  24m    60.3M    2048M  19.2.3     aade1b12b8e6  ffbf1e55665f  
+mon.kvm-node2            kvm-node2                    stopped           6m ago   7m        -    2048M  <unknown>  <unknown>     <unknown>     
+mon.kvm-node3            kvm-node3                    stopped           6m ago   7m        -    2048M  <unknown>  <unknown>     <unknown>     
+node-exporter.kvm-node1  kvm-node1  *:9100            running (20m)     6m ago  23m    22.9M        -  1.7.0      72c9c2088986  f64cdf382adb  
+node-exporter.kvm-node2  kvm-node2  *:9100            running (8m)      6m ago   8m    9441k        -  1.7.0      72c9c2088986  3337cf4f7019  
+node-exporter.kvm-node3  kvm-node3  *:9100            running (8m)      6m ago   8m    9382k        -  1.7.0      72c9c2088986  4557516751d4  
+prometheus.kvm-node1     kvm-node1  *:9095            running (7m)      6m ago  23m    37.0M        -  2.51.0     1d3b7f56885b  afe29aef2172  
+[cephadm@kvm-node1 ~]$ 
+
+[cephadm]$ ceph orch ps --daemon-type mgr
+NAME                  HOST       PORTS             STATUS         REFRESHED  AGE  MEM USE  MEM LIM  VERSION  IMAGE ID      CONTAINER ID  
+mgr.kvm-node1.uaroyz  kvm-node1  *:9283,8765,8443  running (21m)     7m ago  25m     606M        -  19.2.3   aade1b12b8e6  60469d0cfe9a  
+mgr.kvm-node2.aogkah  kvm-node2  *:8443,9283,8765  running (9m)      7m ago   9m     485M        -  19.2.3   aade1b12b8e6  47a52f67a0d0  
+
+[cephadm]$ ceph orch ps --daemon-type mon
+NAME           HOST       PORTS  STATUS         REFRESHED  AGE  MEM USE  MEM LIM  VERSION    IMAGE ID      CONTAINER ID  
+mon.kvm-node1  kvm-node1         running (21m)     7m ago  25m    60.3M    2048M  19.2.3     aade1b12b8e6  ffbf1e55665f  
+mon.kvm-node2  kvm-node2         stopped           7m ago   8m        -    2048M  <unknown>  <unknown>     <unknown>     
+mon.kvm-node3  kvm-node3         stopped           7m ago   8m        -    2048M  <unknown>  <unknown>     <unknown>     
+
+12. Enable mon agent accroding to the nodes
+ceph orch apply mon --placement="3"
