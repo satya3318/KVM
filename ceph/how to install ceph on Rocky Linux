@@ -7,9 +7,17 @@ On all three nodes
 # dnf install -y qemu-kvm libvirt virt-install
 
 3. Install Centos Ceph-reef repo
+A. On Rocky Linux 9
 # dnf install centos-release-ceph-reef
 # dnf install cephadm podman ceph-common
 
+B. On Rocky Linux 10
+# dnf install centos-release-ceph-squid.noarch
+# dnf config-manager --set-enabled crb
+# dnf install lttng-ust
+# dnf install cephadm podman ceph-common 
+
+4. Reboot and check version to ensure that ceph has been installed sucessfully. 
 4. Configure /etc/hosts
 10.190.0.9 kvm-node1
 10.190.0.10 kvm-node2
