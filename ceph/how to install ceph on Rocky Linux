@@ -16,8 +16,12 @@ B. On Rocky Linux 10
 # dnf config-manager --set-enabled crb
 # dnf install lttng-ust
 # dnf install cephadm podman ceph-common 
+# dnf install python3-jinja2 -y
 
 4. Reboot and check version to ensure that ceph has been installed sucessfully. 
+# cephadm version
+cephadm version 19.2.3 (c92aebb279828e9c3c1f5d24613efca272649e62) squid (stable)
+
 4. Configure /etc/hosts
 10.190.0.9 kvm-node1
 10.190.0.10 kvm-node2
