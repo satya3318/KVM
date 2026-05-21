@@ -254,3 +254,86 @@ mon.kvm-node3  kvm-node3         stopped           7m ago   8m        -    2048M
 
 12. Enable mon agent accroding to the nodes
 ceph orch apply mon --placement="3"
+
+13. Add OSD to the cluster
+# lsblk 
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+sda      8:0    0   20G  0 disk 
+├─sda1   8:1    0  200M  0 part /boot/efi
+└─sda2   8:2    0 19.8G  0 part /var/lib/containers/storage/overlay
+                                /
+sdb      8:16   0   10G  0 disk 
+sdc      8:32   0   10G  0 disk 
+
+# ceph orch daemon add osd kvm-node1:/dev/sdb
+# ceph orch daemon add osd kvm-node2:/dev/sdb
+# ceph orch daemon add osd kvm-node3:/dev/sdb
+
+# ceph osd df 
+ID  CLASS  WEIGHT   REWEIGHT  SIZE    RAW USE  DATA     OMAP     META    AVAIL   %USE  VAR   PGS  STATUS
+ 0    ssd  0.00980   1.00000  10 GiB   27 MiB  192 KiB    1 KiB  26 MiB  10 GiB  0.26  0.99    0      up
+ 1    ssd  0.00980   1.00000  10 GiB   27 MiB  772 KiB    1 KiB  26 MiB  10 GiB  0.26  1.01    1      up
+ 2    ssd  0.00980   1.00000  10 GiB   27 MiB  192 KiB    1 KiB  26 MiB  10 GiB  0.26  0.99    0      up
+                       TOTAL  30 GiB   80 MiB  1.1 MiB  4.7 KiB  79 MiB  30 GiB  0.26                   
+MIN/MAX VAR: 0.99/1.01  STDDEV: 0.00
+
+# ceph df
+--- RAW STORAGE ---
+CLASS    SIZE   AVAIL    USED  RAW USED  %RAW USED
+ssd    30 GiB  30 GiB  80 MiB    80 MiB       0.26
+TOTAL  30 GiB  30 GiB  80 MiB    80 MiB       0.26
+ 
+--- POOLS ---
+POOL  ID  PGS   STORED  OBJECTS     USED  %USED  MAX AVAIL
+.mgr   1    1  1.1 MiB        2  1.1 MiB      0     28 GiB
+
+# ceph orch ps --daemon-type osd
+NAME   HOST       PORTS  STATUS         REFRESHED  AGE  MEM USE  MEM LIM  VERSION  IMAGE ID      CONTAINER ID  
+osd.0  kvm-node1         running (2m)      2m ago   2m    13.0M     959M  19.2.3   aade1b12b8e6  cb84010d259a  
+osd.1  kvm-node2         running (99s)    97s ago  99s    12.4M    3007M  19.2.3   aade1b12b8e6  b24f04eaaf2f  
+osd.2  kvm-node3         running (79s)    78s ago  79s    15.3M    7103M  19.2.3   aade1b12b8e6  995cc48f665b  
+[root@kvm-node1 ~]# 
+
+14. Create RBD pool
+An RBD pool in Ceph is a storage pool used for RADOS Block Device (RBD) images.
+RBD provides block storage similar to a virtual disk/LUN, which can be used by:
+
+Think of it like this:
+
+Ceph Cluster
+ └── Pool (rbd pool)
+      └── RBD Images (virtual disks)
+
+# ceph osd lspools
+1 .mgr
+
+# ceph osd pool create vm-pool 32
+pool 'vm-pool' created
+
+# ceph osd lspools
+1 .mgr
+2 vm-pool
+
+- Enable RBD Application on Pool
+# ceph osd pool application enable  vm-pool rbd
+enabled application 'rbd' on pool 'vm-pool'
+
+Verify:
+# ceph osd pool application get  vm-pool
+{
+    "rbd": {}
+}
+
+- Set Replication Size
+# ceph osd pool set vm-pool size 3
+set pool 2 size to 3
+
+# ceph osd pool set vm-pool min_size 2
+set pool 2 min_size to 2
+
+Verify:
+# ceph osd pool get vm-pool size
+size: 3
+
+# ceph osd pool get vm-pool min_size
+min_size: 2
