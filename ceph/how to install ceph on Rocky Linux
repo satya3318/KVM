@@ -337,3 +337,45 @@ size: 3
 
 # ceph osd pool get vm-pool min_size
 min_size: 2
+
+- Initialize the Pool for RBD
+# rbd pool stats vm-pool
+
+If initialized properly, it should return pool statistics instead of errors.
+Example:
+
+Total Images: 0
+Total Provisioned Size: 0 B
+
+If not initialized, you may get:
+rbd: pool 'rbdpool' is not initialized
+
+OR 
+# rados -p rbdpool ls
+If pool is initialized, you should see objects like:
+
+rbd_directory
+rbd_info
+
+rbd_directory is the important metadata object created during initialization.
+
+- Check pool space utilization
+]# ceph df
+--- RAW STORAGE ---
+CLASS    SIZE   AVAIL    USED  RAW USED  %RAW USED
+ssd    30 GiB  30 GiB  81 MiB    81 MiB       0.26
+TOTAL  30 GiB  30 GiB  81 MiB    81 MiB       0.26
+ 
+--- POOLS ---
+POOL     ID  PGS   STORED  OBJECTS     USED  %USED  MAX AVAIL
+.mgr      1    1  1.1 MiB        2  1.1 MiB      0     28 GiB
+vm-pool   2   32     19 B        2   12 KiB      0    9.5 GiB
+
+# ceph orch device ls
+HOST       PATH      TYPE  DEVICE ID                             SIZE  AVAILABLE  REFRESHED  REJECT REASONS                                                           
+kvm-node1  /dev/sdb  ssd   PersistentDisk_disk-20260521-070156  10.0G  No         23m ago    Has a FileSystem, Insufficient space (<10 extents) on vgs, LVM detected  
+kvm-node1  /dev/sdc  ssd   PersistentDisk_disk-20260521-070205  10.0G  Yes        23m ago                                                                             
+kvm-node2  /dev/sdb  ssd   PersistentDisk_disk-20260521-070259  10.0G  No         22m ago    Has a FileSystem, Insufficient space (<10 extents) on vgs, LVM detected  
+kvm-node2  /dev/sdc  ssd   PersistentDisk_disk-20260521-070305  10.0G  Yes        22m ago                                                                             
+kvm-node3  /dev/sdb  ssd   PersistentDisk_disk-20260521-070353  10.0G  No         21m ago    Has a FileSystem, Insufficient space (<10 extents) on vgs, LVM detected  
+kvm-node3  /dev/sdc  ssd   PersistentDisk_disk-20260521-070403  10.0G  Yes        21m ago                                                                             
