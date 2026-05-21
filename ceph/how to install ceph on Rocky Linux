@@ -360,7 +360,7 @@ rbd_info
 rbd_directory is the important metadata object created during initialization.
 
 - Check pool space utilization
-]# ceph df
+# ceph df
 --- RAW STORAGE ---
 CLASS    SIZE   AVAIL    USED  RAW USED  %RAW USED
 ssd    30 GiB  30 GiB  81 MiB    81 MiB       0.26
@@ -411,6 +411,36 @@ But that requires:
 - separate device class
 - CRUSH map rules
 
+- View crush rules
+# ceph osd crush rule ls
+replicated_rule
+
+# ceph osd crush rule dump
+[
+    {
+        "rule_id": 0,
+        "rule_name": "replicated_rule",
+        "type": 1,
+        "steps": [
+            {
+                "op": "take",
+                "item": -1,
+                "item_name": "default"
+            },
+            {
+                "op": "chooseleaf_firstn",
+                "num": 0,
+                "type": "host"  ==> This rule ensures that replica resides on different hosts
+            },
+            {
+                "op": "emit"
+            }
+        ]
+    }
+]
+
+[root@kvm-node1 ~]# 
+
 # ceph osd tree
 ID  CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
 -1         0.02939  root default                                 
@@ -420,3 +450,4 @@ ID  CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
  1    ssd  0.00980          osd.1           up   1.00000  1.00000
 -7         0.00980      host kvm-node3                           
  2    ssd  0.00980          osd.2           up   1.00000  1.00000
+*** Notes end ***
