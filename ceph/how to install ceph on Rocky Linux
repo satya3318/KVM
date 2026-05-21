@@ -439,8 +439,6 @@ replicated_rule
     }
 ]
 
-[root@kvm-node1 ~]# 
-
 # ceph osd tree
 ID  CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
 -1         0.02939  root default                                 
@@ -451,3 +449,4 @@ ID  CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
 -7         0.00980      host kvm-node3                           
  2    ssd  0.00980          osd.2           up   1.00000  1.00000
 *** Notes end ***
+15. Create 
