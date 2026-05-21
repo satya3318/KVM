@@ -379,3 +379,44 @@ kvm-node2  /dev/sdb  ssd   PersistentDisk_disk-20260521-070259  10.0G  No       
 kvm-node2  /dev/sdc  ssd   PersistentDisk_disk-20260521-070305  10.0G  Yes        22m ago                                                                             
 kvm-node3  /dev/sdb  ssd   PersistentDisk_disk-20260521-070353  10.0G  No         21m ago    Has a FileSystem, Insufficient space (<10 extents) on vgs, LVM detected  
 kvm-node3  /dev/sdc  ssd   PersistentDisk_disk-20260521-070403  10.0G  Yes        21m ago                                                                             
+
+** Note ***
+In Ceph you can create:
+- Multiple OSDs
+- Multiple pools
+- Different disks contributing to the same cluster
+
+But there is an important concept:
+
+- Pools are logical.
+- OSDs are physical storage devices.
+
+You do not create a pool “inside one OSD”. So your /dev/sdc disks will become new OSDs, and then pools can use those OSDs.
+
+Instead:
+Disk -> OSD -> CRUSH -> Pool
+
+If You REALLY Want Separate Pools on Separate Disks
+
+This is possible using:
+- CRUSH rules
+- Device classes
+
+Example:
+- SSD pool
+- HDD pool
+- Backup pool only on large disks
+
+But that requires:
+- separate device class
+- CRUSH map rules
+
+# ceph osd tree
+ID  CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
+-1         0.02939  root default                                 
+-3         0.00980      host kvm-node1                           
+ 0    ssd  0.00980          osd.0           up   1.00000  1.00000
+-5         0.00980      host kvm-node2                           
+ 1    ssd  0.00980          osd.1           up   1.00000  1.00000
+-7         0.00980      host kvm-node3                           
+ 2    ssd  0.00980          osd.2           up   1.00000  1.00000
