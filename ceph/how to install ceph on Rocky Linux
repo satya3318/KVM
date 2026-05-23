@@ -507,3 +507,107 @@ alpinelinux3.8
 alpinelinux3.7
 alpinelinux3.6
 alpinelinux3.5
+
+
+]# virt-install --name vm101 \
+--memory 1024 --vcpus 2 
+--network network=default,model=virtio \
+--disk protocol=rbd,name=vm-pool/vm101-disk,hosts=10.190.0.2:6789\;10.190.0.3:6789\;10.190.0.4:6789,auth_username=libvirt,secret_uuid=14f7a53a-49c5-4282-90c4-d50a6203ea38,format=raw,bus=virtio,cache=none,discard=unmap \
+--osinfo alpinelinux3.22 \
+--cdrom /var/lib/libvirt/images/alpine-virt-3.23.4-x86_64.iso \
+--graphics none 
+--console pty,target_type=serial
+
+WARNING  KVM acceleration not available, using 'qemu'
+ERROR    Unknown --disk options: ['protocol', 'name', 'hosts', 'auth_username', 'secret_uuid']
+[root@kvm-node1 ~]# 
+[root@kvm-node1 ~]# 
+
+[root@kvm-node1 ~]# ceph auth ls
+osd.0
+        key: AQDjrg5qWvQNBBAAC7BKtD7V86ircUWEfpWHbg==
+        caps: [mgr] allow profile osd
+        caps: [mon] allow profile osd
+        caps: [osd] allow *
+osd.1
+        key: AQAcrw5qUGpaBBAAwWmsLOB3reehLhZvCGtf/w==
+        caps: [mgr] allow profile osd
+        caps: [mon] allow profile osd
+        caps: [osd] allow *
+osd.2
+        key: AQAurw5q+ePnORAAJnWox0YgKnoe1q/NfKO/Zw==
+        caps: [mgr] allow profile osd
+        caps: [mon] allow profile osd
+        caps: [osd] allow *
+client.admin
+        key: AQBKlA5q5CL7FBAA1mw6jrcawRybLYZHv1q+Sw==
+        caps: [mds] allow *
+        caps: [mgr] allow *
+        caps: [mon] allow *
+        caps: [osd] allow *
+client.bootstrap-mds
+        key: AQBNlA5qIRRsBxAAOKQcxYg9xpvA6bSkWRtpDw==
+        caps: [mon] allow profile bootstrap-mds
+client.bootstrap-mgr
+        key: AQBNlA5qhR9sBxAAI1oQ0H6u35dZ0WnqeaNb8A==
+        caps: [mon] allow profile bootstrap-mgr
+client.bootstrap-osd
+        key: AQBNlA5qTitsBxAAxvMhejYfJhvp51tYHeJtKg==
+        caps: [mon] allow profile bootstrap-osd
+client.bootstrap-rbd
+        key: AQBNlA5qBzZsBxAAyxq1Vj4GkT7TkLbMyr+YxA==
+        caps: [mon] allow profile bootstrap-rbd
+client.bootstrap-rbd-mirror
+        key: AQBNlA5qOUBsBxAAqNfN/lnai0AYBBxXBVs2Iw==
+        caps: [mon] allow profile bootstrap-rbd-mirror
+client.bootstrap-rgw
+        key: AQBNlA5qukxsBxAAKmSKK6ro4Pyd+r/7E1AsYw==
+        caps: [mon] allow profile bootstrap-rgw
+client.ceph-exporter.kvm-node1
+        key: AQB/lA5qhEM1FhAAFL9tYbi1YOrfRtdE7qFfxA==
+        caps: [mgr] allow r
+        caps: [mon] profile ceph-exporter
+        caps: [osd] allow r
+client.ceph-exporter.kvm-node2
+        key: AQCzqw5qrexuIxAA9YVV/H4uw/Uui343tinMSA==
+        caps: [mgr] allow r
+        caps: [mon] profile ceph-exporter
+        caps: [osd] allow r
+client.ceph-exporter.kvm-node3
+        key: AQDnrA5q4REzExAAVUc1SpL+yjFzYWb3qziAtQ==
+        caps: [mgr] allow r
+        caps: [mon] profile ceph-exporter
+        caps: [osd] allow r
+client.crash.kvm-node1
+        key: AQCBlA5qljQjGBAAIG0P64WuokTck4e9Z7taqg==
+        caps: [mgr] profile crash
+        caps: [mon] profile crash
+client.crash.kvm-node2
+        key: AQC2qw5q9l4+KRAA5UDzqxocWDat/szNC1Pk/Q==
+        caps: [mgr] profile crash
+        caps: [mon] profile crash
+client.crash.kvm-node3
+        key: AQDqrA5qwv/kLRAAa0dDd3iBYktsTxZ9TmqDDA==
+        caps: [mgr] profile crash
+        caps: [mon] profile crash
+client.libvirt
+        key: AQBxvRFqnaMwDRAAdULh/6lw9+wSvBQFlfJ37A==
+        caps: [mon] profile rbd
+        caps: [osd] profile rbd pool=vm-pool
+mgr.kvm-node1.fzjfaz
+        key: AQBKlA5qZNXCHRAAixZKUhgPhbBn3fKwumnKhw==
+        caps: [mds] allow *
+        caps: [mon] profile mgr
+        caps: [osd] allow *
+mgr.kvm-node2.anehvj
+        key: AQC6qw5qFQCTMBAABgTLDkYXQ7ycKuRyRG/2Mw==
+        caps: [mds] allow *
+        caps: [mon] profile mgr
+        caps: [osd] allow *
+[root@kvm-node1 ~]# ceph auth get client.libvirt
+[client.libvirt]
+        key = AQBxvRFqnaMwDRAAdULh/6lw9+wSvBQFlfJ37A==
+        caps mon = "profile rbd"
+        caps osd = "profile rbd pool=vm-pool"
+[root@kvm-node1 ~]# 
+
