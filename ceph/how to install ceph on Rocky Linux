@@ -449,4 +449,61 @@ ID  CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
 -7         0.00980      host kvm-node3                           
  2    ssd  0.00980          osd.2           up   1.00000  1.00000
 *** Notes end ***
-15. Create 
+15. Create Ceph Authentication User for KVM
+Create dedicated user for libvirt/KVM. On any Ceph node:
+# ceph auth get-or-create client.libvirt mon 'profile rbd' osd 'profile rbd pool=vm-pool'
+[client.libvirt]
+        key = AQBxvRFqnaMwDRAAdULh/6lw9+wSvBQFlfJ37A==  ==> Save this
+
+16. Create Secret File on KVM Nodes
+
+cat > secret.xml <<EOF
+<secret ephemeral='no' private='no'>
+  <usage type='ceph'>
+    <name>client.libvirt secret</name>
+  </usage>
+</secret>
+EOF
+
+- Define secret:
+
+# virsh secret-define --file secret.xml
+Secret 14f7a53a-49c5-4282-90c4-d50a6203ea38 created ==> Save this
+
+Now set Ceph key:
+
+# uuidgen 
+a9b06445-4f5a-4163-9cf0-6095bb4b46c9
+
+[root@kvm-node1 ~]# virsh secret-set-value --secret 14f7a53a-49c5-4282-90c4-d50a6203ea38 --base64 AQBxvRFqnaMwDRAAdULh/6lw9+wSvBQFlfJ37A==
+warning: Passing secret value as command-line argument is insecure!
+Secret value set
+
+17. Verify Ceph Connectivity from KVM Node
+# rbd -p vm-pool ls  ==> if no disk nothing will print.
+
+Should work without errors.
+
+18. Create VM Disk on Ceph RBD
+# rbd create vm-pool/vm101-disk --size 5G
+# rbd -p vm-pool ls
+vm101-disk
+[root@kvm-node1 ceph]# virt-install --osinfo list | grep -i alpine
+alpinelinux3.22
+alpinelinux3.21
+alpinelinux3.20
+alpinelinux3.19
+alpinelinux3.18
+alpinelinux3.17
+alpinelinux3.16
+alpinelinux3.15
+alpinelinux3.14
+alpinelinux3.13
+alpinelinux3.12
+alpinelinux3.11
+alpinelinux3.10
+alpinelinux3.9
+alpinelinux3.8
+alpinelinux3.7
+alpinelinux3.6
+alpinelinux3.5
