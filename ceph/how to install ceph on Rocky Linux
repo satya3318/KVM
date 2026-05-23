@@ -488,7 +488,10 @@ Should work without errors.
 # rbd create vm-pool/vm101-disk --size 5G
 # rbd -p vm-pool ls
 vm101-disk
-[root@kvm-node1 ceph]# virt-install --osinfo list | grep -i alpine
+
+19. Create VM Using virt-install
+- Find supported OS version
+# virt-install --osinfo list | grep -i alpine
 alpinelinux3.22
 alpinelinux3.21
 alpinelinux3.20
@@ -508,10 +511,9 @@ alpinelinux3.7
 alpinelinux3.6
 alpinelinux3.5
 
-
-]# virt-install --name vm101 \
+# virt-install --name vm101 \
 --memory 1024 --vcpus 2 
---network network=default,model=virtio \
+--network network=default,model=virtio \ ## --> For GCP, for actual physocal server "--network bridge=br0 \"
 --disk protocol=rbd,name=vm-pool/vm101-disk,hosts=10.190.0.2:6789\;10.190.0.3:6789\;10.190.0.4:6789,auth_username=libvirt,secret_uuid=14f7a53a-49c5-4282-90c4-d50a6203ea38,format=raw,bus=virtio,cache=none,discard=unmap \
 --osinfo alpinelinux3.22 \
 --cdrom /var/lib/libvirt/images/alpine-virt-3.23.4-x86_64.iso \
@@ -519,10 +521,13 @@ alpinelinux3.5
 --console pty,target_type=serial
 
 WARNING  KVM acceleration not available, using 'qemu'
-ERROR    Unknown --disk options: ['protocol', 'name', 'hosts', 'auth_username', 'secret_uuid']
-[root@kvm-node1 ~]# 
-[root@kvm-node1 ~]# 
+ERROR    Unknown --disk options: ['protocol', 'name', 'hosts', 'auth_username', 'secret_uuid'] ==> This error indicates, virsh-install does not support latest
+rbd disk opitions.
 
+**** OR *****
+Then follow below steps
+
+- Create client auth key file
 [root@kvm-node1 ~]# ceph auth ls
 osd.0
         key: AQDjrg5qWvQNBBAAC7BKtD7V86ircUWEfpWHbg==
@@ -604,10 +609,42 @@ mgr.kvm-node2.anehvj
         caps: [mds] allow *
         caps: [mon] profile mgr
         caps: [osd] allow *
-[root@kvm-node1 ~]# ceph auth get client.libvirt
+
+# ceph auth get client.libvirt
 [client.libvirt]
         key = AQBxvRFqnaMwDRAAdULh/6lw9+wSvBQFlfJ37A==
         caps mon = "profile rbd"
         caps osd = "profile rbd pool=vm-pool"
-[root@kvm-node1 ~]# 
 
+# Vi /etc/ceph/ceph.client.libvirt.keyring
+[client.libvirt]
+        key = AQBxvRFqnaMwDRAAdULh/6lw9+wSvBQFlfJ37A==
+
+# cat /etc/ceph/ceph.client.libvirt.keyring
+[client.libvirt]
+        key = AQBxvRFqnaMwDRAAdULh/6lw9+wSvBQFlfJ37A==
+
+# rbd map vm-pool/vm101-disk --id libvirt
+/dev/rbd0
+
+# virt-install \
+  --name vm101 \
+  --memory 1024 \
+  --vcpus 2 \
+  --disk /dev/rbd0,format=raw,bus=virtio \
+  --cdrom /var/lib/libvirt/images/alpine-virt-3.23.4-x86_64.iso \
+  --network network=default,model=virtio \
+  --os-variant alpinelinux3.22 \
+  --graphics none \
+  --console pty,target_type=serial
+WARNING  KVM acceleration not available, using 'qemu'
+WARNING  CDROM media does not print to the text console by default, so you likely will not see text install output. You might want to use --location. See the man page for examples of using --location with CDROM media
+
+Starting install...
+Creating domain...                                                                                                                                  |         00:00:00     
+Running text console command: virsh --connect qemu:///system console vm101
+Connected to domain 'vm101'
+Escape character is ^] (Ctrl + ])
+
+ISOLINUX 6.04 6.04-pre1  Copyright (C) 1994-2015 H. Peter Anvin et al
+boot: 
