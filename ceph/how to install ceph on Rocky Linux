@@ -648,3 +648,13 @@ Escape character is ^] (Ctrl + ])
 
 ISOLINUX 6.04 6.04-pre1  Copyright (C) 1994-2015 H. Peter Anvin et al
 boot: 
+
+- Check disk mapping 
+
+# rbd showmapped
+[root@kvm-node1 ~]# rbd map vm-pool/vm101-disk --id libvirt
+/dev/rbd0
+ 
+# rbd showmapped
+id  pool     namespace  image       snap  device   
+0   vm-pool             vm101-disk  -     /dev/rbd0
