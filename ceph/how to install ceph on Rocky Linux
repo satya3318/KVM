@@ -658,3 +658,154 @@ boot:
 # rbd showmapped
 id  pool     namespace  image       snap  device   
 0   vm-pool             vm101-disk  -     /dev/rbd0
+
+- check quorum
+root@kvm-node1 ~]# ceph quorum_status --format json-pretty
+
+{
+    "election_epoch": 58,
+    "quorum": [
+        0,
+        1,
+        2
+    ],
+    "quorum_names": [
+        "kvm-node1",
+        "kvm-node2",
+        "kvm-node3"
+    ],
+    "quorum_leader_name": "kvm-node1",
+    "quorum_age": 260,
+    "features": {
+        "quorum_con": "4540701547738038271",
+        "quorum_mon": [
+            "kraken",
+            "luminous",
+            "mimic",
+            "osdmap-prune",
+            "nautilus",
+            "octopus",
+            "pacific",
+            "elector-pinging",
+            "quincy",
+            "reef",
+            "squid"
+        ]
+    },
+    "monmap": {
+        "epoch": 3,
+        "fsid": "af49eec0-54d3-11f1-a5d8-42010abe0002",
+        "modified": "2026-05-21T06:57:54.048116Z",
+        "created": "2026-05-21T05:12:42.669666Z",
+        "min_mon_release": 19,
+        "min_mon_release_name": "squid",
+        "election_strategy": 1,
+        "disallowed_leaders": "",
+        "stretch_mode": false,
+        "tiebreaker_mon": "",
+        "removed_ranks": "",
+        "features": {
+            "persistent": [
+                "kraken",
+                "luminous",
+                "mimic",
+                "osdmap-prune",
+                "nautilus",
+                "octopus",
+                "pacific",
+                "elector-pinging",
+                "quincy",
+                "reef",
+                "squid"
+            ],
+            "optional": []
+        },
+        "mons": [
+            {
+                "rank": 0,
+                "name": "kvm-node1",
+                "public_addrs": {
+                    "addrvec": [
+                        {
+                            "type": "v2",
+                            "addr": "10.190.0.2:3300",
+                            "nonce": 0
+                        },
+                        {
+                            "type": "v1",
+                            "addr": "10.190.0.2:6789",
+                            "nonce": 0
+                        }
+                    ]
+                },
+                "addr": "10.190.0.2:6789/0",
+                "public_addr": "10.190.0.2:6789/0",
+                "priority": 0,
+                "weight": 0,
+                "crush_location": "{}"
+            },
+            {
+                "rank": 1,
+                "name": "kvm-node2",
+                "public_addrs": {
+                    "addrvec": [
+                        {
+                            "type": "v2",
+                            "addr": "10.190.0.3:3300",
+                            "nonce": 0
+                        },
+                        {
+                            "type": "v1",
+                            "addr": "10.190.0.3:6789",
+                            "nonce": 0
+                        }
+                    ]
+                },
+                "addr": "10.190.0.3:6789/0",
+                "public_addr": "10.190.0.3:6789/0",
+                "priority": 0,
+                "weight": 0,
+                "crush_location": "{}"
+            },
+            {
+                "rank": 2,
+                "name": "kvm-node3",
+                "public_addrs": {
+                    "addrvec": [
+                        {
+                            "type": "v2",
+                            "addr": "10.190.0.4:3300",
+                            "nonce": 0
+                        },
+                        {
+                            "type": "v1",
+                            "addr": "10.190.0.4:6789",
+                            "nonce": 0
+                        }
+                    ]
+                },
+                "addr": "10.190.0.4:6789/0",
+                "public_addr": "10.190.0.4:6789/0",
+                "priority": 0,
+                "weight": 0,
+                "crush_location": "{}"
+            }
+        ]
+    }
+}
+
+
+# ceph orch ps --daemon_type mon
+
+Ceph quorum basics: With 3 MONs:
+
+minimum 2 MONs required for quorum
+if 2 MONs fail → cluster becomes unavailable
+
+Formula: quorum = (total mons / 2) + 1
+So:
+1 MON → quorum 1
+3 MONs → quorum 2
+5 MONs → quorum 3
+
+This is based on distributed consensus (Paxos).
