@@ -1,0 +1,134 @@
+To take a snapshot of a VM in KVM when the VM disk is stored on Ceph RBD storage, there are two common methods:
+
+Ceph RBD snapshot (storage-level snapshot)
+libvirt/QEMU snapshot (VM-level snapshot)
+
+For production workloads, Ceph RBD snapshots are usually preferred because they are fast and space efficient.
+
+1. Check VM Disk Location
+
+First verify that the VM is using an RBD image.
+
+virsh domblklist <vm-name>
+
+Example:
+
+virsh domblklist vm01
+
+Output:
+
+Target   Source
+------------------------------------------------
+vda      rbd:rbd-pool/vm-100-disk-0
+
+You can also inspect XML:
+
+virsh dumpxml vm01
+
+Look for:
+
+<source protocol='rbd' name='rbd-pool/vm-100-disk-0'>
+2. Create Ceph RBD Snapshot (Recommended)
+Syntax
+rbd snap create <pool>/<image>@<snapshot-name>
+
+Example:
+
+rbd snap create rbd-pool/vm-100-disk-0@before-upgrade
+
+Verify snapshot:
+
+rbd snap ls rbd-pool/vm-100-disk-0
+
+Example output:
+
+SNAPID NAME              SIZE
+1      before-upgrade    50 GiB
+3. Make Snapshot Crash-Consistent (Important)
+
+If VM is running, filesystem buffers may not be flushed.
+
+For cleaner snapshots:
+
+Option A — Freeze filesystem inside VM
+
+Inside guest VM:
+
+fsfreeze -f /
+
+Take snapshot:
+
+rbd snap create rbd-pool/vm-100-disk-0@before-upgrade
+
+Then unfreeze:
+
+fsfreeze -u /
+Option B — Use QEMU Guest Agent (Best Practice)
+
+Install guest agent inside VM:
+
+Ubuntu/Debian
+apt install qemu-guest-agent
+systemctl enable --now qemu-guest-agent
+RHEL/CentOS
+yum install qemu-guest-agent
+systemctl enable --now qemu-guest-agent
+
+Enable in VM XML:
+
+<channel type='unix'>
+
+Then libvirt can create quiesced snapshots.
+
+4. Create Snapshot Using virsh
+External snapshot (recommended)
+virsh snapshot-create-as \
+--domain vm01 \
+--name before-upgrade \
+--disk-only \
+--atomic
+
+If guest agent is installed:
+
+virsh snapshot-create-as \
+--domain vm01 \
+--name before-upgrade \
+--disk-only \
+--quiesce \
+--atomic
+5. Rollback to Snapshot
+Stop VM
+virsh shutdown vm01
+Rollback
+rbd snap rollback rbd-pool/vm-100-disk-0@before-upgrade
+Start VM
+virsh start vm01
+6. Delete Snapshot
+rbd snap rm rbd-pool/vm-100-disk-0@before-upgrade
+7. Important Production Notes
+RBD snapshots are copy-on-write, so creation is very fast.
+Too many snapshots can reduce performance.
+Always test rollback procedure.
+For databases like MySQL/PostgreSQL/MongoDB, use application-aware backup if possible.
+For long-term backup, export snapshots:
+rbd export rbd-pool/vm-100-disk-0@before-upgrade backup.img
+8. Check Existing Snapshots for All Images
+rbd ls rbd-pool
+
+Loop through:
+
+for img in $(rbd ls rbd-pool); do
+    echo "Image: $img"
+    rbd snap ls rbd-pool/$img
+done
+9. If Using qcow2 on CephFS Instead of RBD
+
+Then snapshot method changes:
+
+virsh snapshot-create-as vm01 snap1
+
+or use:
+
+qemu-img snapshot
+
+But for performance and production environments, direct RBD disks are generally better than qcow2 over CephFS.
