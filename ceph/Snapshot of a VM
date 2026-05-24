@@ -86,6 +86,132 @@ id  pool     namespace  image       snap  device
 [root@kvm-node1 ceph]# 
 
 fsfreeze -u /
+
+
+[root@kvm-node1 ceph]# ceph osd pool get-quota vm-pool
+quotas for pool 'vm-pool':
+  max objects: N/A
+  max bytes  : N/A
+[root@kvm-node1 ceph]# 
+
+Can i set size limit for snaphot like 20% of disk size like in stoarge snapshot
+
+No, Ceph RBD snapshots do not support a direct snapshot reserve limit like:
+
+Snapshot can grow only up to 20% of volume size
+
+which some SAN/storage arrays provide.
+
+Ceph snapshots are CoW-based and grow dynamically according to changed blocks, with no per-snapshot quota mechanism.
+
+What Ceph Supports Instead
+1. Pool Quotas (Closest Alternative)
+
+You can limit total storage usage of a pool.
+
+Example:
+
+ceph osd pool set-quota vm-pool max_bytes 10T
+
+or:
+
+ceph osd pool set-quota vm-pool max_objects 1000000
+
+This limits entire pool usage, including:
+
+VM data
+Snapshots
+Clones
+
+Check quota:
+
+ceph osd pool get-quota vm-pool
+2. Image Size Limit
+
+You already define virtual disk size:
+
+rbd create vm-pool/vm101-disk --size 100G
+
+But snapshots are not separately quota-controlled.
+
+3. Snapshot Retention Automation (Recommended)
+
+Instead of size limits, production environments usually control:
+
+Number of snapshots
+Snapshot age
+Backup retention
+
+Example policy:
+
+Keep only:
+- 3 daily snapshots
+- 2 weekly snapshots
+- delete older ones automatically
+
+This is the common Ceph approach.
+
+4. Monitor Snapshot Growth
+
+You can monitor usage using:
+
+rbd du vm-pool/vm101-disk
+
+and:
+
+rbd snap ls vm-pool/vm101-disk
+5. Advanced Alternative — Separate Snapshot Pool
+
+Some environments isolate workloads:
+
+Pool	Purpose
+fast-vm-pool	Active VM disks
+backup-pool	Snapshot clones/backups
+
+Then snapshot clones are copied/exported elsewhere.
+
+Important Difference From SAN Storage
+
+Traditional SAN snapshot systems often reserve metadata area:
+
+Snapshot reserve = 20%
+
+If reserve fills:
+
+snapshots fail
+or oldest snapshots deleted
+
+Ceph does NOT work like this.
+
+Ceph snapshots consume normal cluster storage dynamically.
+
+Production Recommendation
+
+Instead of snapshot size limits:
+
+Use:
+Pool quotas
+Monitoring
+Snapshot cleanup automation
+Backup retention policies
+Avoid:
+Long-lived snapshots
+Hundreds of snapshots
+Keeping snapshots on nearly full clusters
+Example Cleanup Script
+
+Keep only latest 5 snapshots:
+
+rbd snap ls vm-pool/vm101-disk \
+| awk 'NR>1 {print $2}' \
+| head -n -5 \
+| while read snap; do
+    rbd snap rm vm-pool/vm101-disk@$snap
+done
+
+You can schedule via cron.
+
+------------------------------------------
 Option B — Use QEMU Guest Agent (Best Practice)
 
 Install guest agent inside VM:
