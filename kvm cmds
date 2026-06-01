@@ -79,3 +79,32 @@ In case of shared LVM, vm snapshot is not possible, but by taking lvm snapshot, 
 
 WantedBy=multi-user.target
 [root@kvm-node1 ~]#
+
+
+******** How to view NAT IP addresses *********
+
+[root@kvm-node1 data]# virsh net-dhcp-leases default
+ Expiry Time           MAC address         Protocol   IP address           Hostname   Client ID or DUID
+------------------------------------------------------------------------------------------------------------
+ 2026-06-01 07:30:08   52:54:00:40:13:7b   ipv4       192.168.122.221/24   -          01:52:54:00:40:13:7b
+ 2026-06-01 06:37:40   52:54:00:8b:48:20   ipv4       192.168.122.87/24    -          01:52:54:00:8b:48:20
+ 2026-06-01 07:30:12   52:54:00:97:9a:94   ipv4       192.168.122.45/24    -          01:52:54:00:97:9a:94
+ 2026-06-01 06:47:01   52:54:00:a4:f0:bc   ipv4       192.168.122.5/24     -          01:52:54:00:a4:f0:bc
+ 2026-06-01 07:29:59   52:54:00:e8:d1:99   ipv4       192.168.122.156/24   -          01:52:54:00:e8:d1:99
+ 2026-06-01 06:50:41   52:54:00:fd:42:bf   ipv4       192.168.122.162/24   -          01:52:54:00:fd:42:bf
+
+[root@kvm-node1 data]# 
+[root@kvm-node1 data]# virsh domifaddr k8s-cp01
+ Name       MAC address          Protocol     Address
+-------------------------------------------------------------------------------
+ vnet0      52:54:00:e8:d1:99    ipv4         192.168.122.156/24
+
+[root@kvm-node1 data]# virsh domifaddr k8s-w01
+ Name       MAC address          Protocol     Address
+-------------------------------------------------------------------------------
+ vnet1      52:54:00:40:13:7b    ipv4         192.168.122.221/24
+
+[root@kvm-node1 data]# virsh domifaddr k8s-w02
+ Name       MAC address          Protocol     Address
+-------------------------------------------------------------------------------
+ vnet2      52:54:00:97:9a:94    ipv4         192.168.122.45/24
