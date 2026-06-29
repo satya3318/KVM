@@ -1,0 +1,58 @@
+Deploy VM fro Qcow2 image
+
+1. Download qcow2 image
+root@rocky-linux10 opt]# wget https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base.latest.x86_64.qcow2
+
+2. Step 1: Verify the QCOW2 image
+# qemu-img info Rocky-10-GenericCloud-Base.latest.x86_64.qcow2
+image: Rocky-10-GenericCloud-Base.latest.x86_64.qcow2
+file format: qcow2
+virtual size: 10 GiB (10737418240 bytes)
+disk size: 520 MiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    compression type: zlib
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+    extended l2: false
+Child node '/file':
+    filename: Rocky-10-GenericCloud-Base.latest.x86_64.qcow2
+    protocol type: file
+    file length: 520 MiB (544997376 bytes)
+    disk size: 520 MiB
+
+3. Copy the image to the libvirt images directory
+# cp Rocky-9.qcow2 /var/lib/libvirt/images/
+
+4: Create the VM using virt-install
+virt-install \
+  --name rocky-node1 \
+  --memory 12288 \
+  --vcpus 12 \
+  --disk path=/var/lib/libvirt/images/rocky1.qcow2,format=qcow2,bus=virtio \
+  --import \
+  --network network=default \
+  --os-variant rocky10 \
+  --graphics none \
+  --cloud-init root-password-generate=off,root-password-file=/root/rootpw \
+  --console pty,target_type=serial
+
+5. Valiate VM
+# virsh list --all
+ Id   Name          State
+-----------------------------
+ 2    rocky-node1   running
+
+
+
+Explanation:
+
+--import tells KVM that the OS is already installed in the QCOW2 image.
+--disk points to the existing QCOW2 file.
+--network bridge=br0 attaches the VM to the bridge (replace br0 with your bridge name, e.g., cloudbr0).
+--graphics vnc enables VNC console acces
+
+3. 
+cp Rocky-9.qcow2 /var/lib/libvirt/images/
